@@ -1,224 +1,138 @@
+- [**README**](#)
+
 # Splunk-Lab-MTW
 
-> End-to-end deployment of a Splunk Enterprise SIEM environment for centralized Windows event log collection, authentication monitoring, and security analysis.
+## Overview
+
+This project demonstrates the deployment and configuration of **Splunk Enterprise** as a Security Information and Event Management (SIEM) platform for centralized Windows log collection and security monitoring.
+
+A Windows Server Active Directory machine was configured with the **Splunk Universal Forwarder** to securely transmit Security, System, and Application event logs to a dedicated Ubuntu Splunk server. Once ingested, the logs were analyzed using **Splunk Processing Language (SPL)** to identify authentication events, account lockouts, service activity, and other security-related events.
+
+The project concludes with the creation of dashboards and alerts that simulate the responsibilities of a Security Operations Center (SOC) analyst.
 
 ---
 
-# Project Architecture
+### Lab Architecture
 
-![Architecture Diagram](images/architecture.png)
-
-> **Lab Environment**
->
-> - Ubuntu Server 24.04 LTS (Splunk Enterprise)
-> - Windows Server 2022 Domain Controller
-> - Active Directory Domain Services
-> - Splunk Universal Forwarder
-> - Windows Event Logs (Security, System, Application)
-
----
-
-## Dashboard Preview
-
-> *(Add your completed Splunk dashboard screenshot here.)*
-
-![Windows Security Dashboard](images/dashboard-overview.png)
-
-The Windows Security Dashboard provides a centralized view of authentication activity across the Active Directory environment. It enables security analysts to quickly identify failed logins, successful logins, account lockouts, authentication trends, Windows security events, and overall log volume within the environment.
+```
+Windows Server
+     │
+     │ Splunk Universal Forwarder
+     │
+     ▼
+Ubuntu Server (Splunk Enterprise)
+     │
+     ▼
+Indexed Windows Event Logs
+     │
+     ▼
+SPL Searches
+     │
+     ▼
+Dashboards & Alerts
+```
 
 ---
 
-# Overview
+### Project Screenshots
 
-Security teams rely on Security Information and Event Management (SIEM) platforms to collect, centralize, and analyze logs from systems across their environments. Rather than manually reviewing logs on individual servers, analysts use a SIEM to investigate suspicious activity, correlate events, and identify indicators of compromise.
+### Splunk Installation
 
-In this project, I deployed **Splunk Enterprise** on an Ubuntu Server virtual machine and configured a Windows Server 2022 Active Directory Domain Controller to forward Windows Event Logs using the Splunk Universal Forwarder.
+```
+images/1-download-splunk.png
+images/2-install-splunk-terminal.png
+images/12-start-splunk-service.png
+images/16-login-page.png
+images/17-splunk-home.png
+```
 
-After configuring log forwarding, I created custom SPL searches to analyze authentication activity and built a Windows Security Dashboard to visualize security events in real time. This project simulates the workflow commonly performed by Tier 1 SOC Analysts during authentication investigations and security monitoring.
-
----
-
-# Business Problem
-
-Organizations generate thousands of Windows security events every day, including successful logins, failed authentication attempts, account lockouts, service activity, and system events. Without centralized logging, security teams must manually investigate each system individually, increasing investigation time and reducing visibility into potential attacks.
-
-This project demonstrates how Splunk addresses that challenge by centralizing Windows Event Logs into a searchable SIEM platform, allowing analysts to quickly identify suspicious authentication activity, investigate security events, and monitor overall system health through dashboards and SPL searches.
+These screenshots demonstrate the installation of Splunk Enterprise on an Ubuntu Server, initial configuration, enabling Splunk services, and accessing the Splunk Web interface.
 
 ---
 
-## Technologies Used
+### Universal Forwarder Installation
 
-- Splunk Enterprise
-- Splunk Universal Forwarder
-- Ubuntu Server 24.04 LTS
-- Windows Server 2022
-- Active Directory Domain Services
-- Windows Event Viewer
-- PowerShell
-- Linux CLI
-- SPL (Splunk Processing Language)
-- VMware Workstation
+```
+images/18-forwarder-download.png
+images/21-deployment-server.png
+images/22-receiving-index.png
+images/23-forwarder-install-complete.png
+```
+
+The Universal Forwarder was installed on the Windows Server and configured to securely send Windows Event Logs to the Splunk indexer.
 
 ---
 
-## Project Objectives
+### Configuring inputs.conf
 
-- Deploy Splunk Enterprise on Ubuntu Linux
-- Configure Splunk receiving on port **9997**
-- Install the Splunk Universal Forwarder on Windows Server
-- Configure Windows Event Log collection using **inputs.conf**
-- Forward Security, System, and Application logs into Splunk
-- Verify successful log ingestion
-- Create custom SPL searches
-- Analyze Windows authentication activity
-- Build a SOC-style Windows Security Dashboard
+```
+images/24-path.png
+images/24.5-directory.png
+images/25-inputs-conf.png
+images/26-inputs-conf-complete.png
+```
 
----
-
-## Lab Walkthrough
-
-### 1. Installed Splunk Enterprise
-
-Installed Splunk Enterprise on an Ubuntu Server virtual machine and configured the initial administrator account.
-
-**Screenshot**
-
-`images/03-install-complete.png`
-
----
-
-### 2. Configured Splunk Receiving
-
-Configured Splunk to receive incoming data from Universal Forwarders on TCP port **9997**.
-
-**Screenshot**
-
-`images/33-enable-listening.png`
-
-`images/34-port9997.png`
-
----
-
-### 3. Installed the Universal Forwarder
-
-Installed the Splunk Universal Forwarder on the Windows Server 2022 Domain Controller and configured both the Deployment Server and Receiving Indexer.
-
-**Screenshots**
-
-`images/21-deployment-server.png`
-
-`images/22-receiving-indexer.png`
-
----
-
-### 4. Configured Windows Event Collection
-
-Created an **inputs.conf** configuration file to collect:
+The **inputs.conf** file was configured to collect:
 
 - Windows Security Logs
 - Windows System Logs
 - Windows Application Logs
 
-The forwarder was restarted to begin sending telemetry to Splunk.
-
-**Screenshots**
-
-`images/24-inputsconf-location.png`
-
-`images/25-inputsconf.png`
+This allowed authentication events, system activity, and application logs to be forwarded into Splunk automatically.
 
 ---
 
-### 5. Verified Log Ingestion
+### Confirming Data Collection
 
-Confirmed that Windows Event Logs were successfully being forwarded into the **windows_logs** index.
-
-**Screenshots**
-
-`images/31-forwarding.png`
-
-`images/36-events-arriving.png`
-
----
-
-### 6. Investigated Windows Authentication Events
-
-Created SPL searches to analyze common Windows security events including:
-
-- Successful Logins (4624)
-- Failed Logins (4625)
-- Account Lockouts (4740)
-
-Example SPL:
-
-```spl
-index=windows_logs sourcetype=WinEventLog:Security EventCode=4625
-| stats count by Account_Name
-| sort -count
+```
+images/30-search-working.png
+images/31-windows-events.png
 ```
 
----
-
-### 7. Built a Windows Security Dashboard
-
-The dashboard was designed to provide real-time visibility into authentication activity and Windows security events.
-
-Current dashboard panels include:
-
-- Failed Logins
-- Successful Logins
-- Account Lockouts
-- Failed Logins Over Time
-- Successful Logins Over Time
-- Top Failed Users
-- Top Successful Users
-- Authentication Success vs Failure
-- Logon Types
-- Security Event Timeline
-- Top Event IDs
-- Windows Service Activity
-- Recent Failed Logins
-- Recent Successful Logins
-- Active Directory User Changes
-- Group Membership Changes
-- Overall Event Volume
-- Events by Host
-- Events by Sourcetype
+After restarting the Splunk Forwarder, Windows Event Logs successfully appeared within the newly created `windows_logs` index.
 
 ---
 
-### 8. Future Improvements
+## Business Problem
 
-Future enhancements planned for this project include:
+Organizations generate thousands to millions of security events every day across Active Directory, Windows Servers, workstations, applications, and networking equipment.
 
-- Brute Force Detection Alerts
-- Password Spray Detection
-- GeoIP Login Visualization
-- Windows Defender Event Monitoring
-- Sysmon Integration
-- PowerShell Logging
-- MITRE ATT&CK Mapping
-- Additional Detection Rules
-- Email Alerting
-- Scheduled Reports
+Without centralized logging, investigating incidents requires analysts to manually search each individual system, increasing response times and making suspicious activity difficult to identify.
+
+Splunk solves this problem by collecting logs from multiple systems into one searchable platform where security teams can:
+
+- Detect brute force attacks
+- Investigate failed authentication attempts
+- Monitor user activity
+- Search historical events
+- Build dashboards for continuous monitoring
+- Configure alerts for suspicious behavior
+
+This lab demonstrates how a SIEM improves visibility across an environment while enabling faster incident detection.
 
 ---
 
-# What I Learned
+## What I Learned
 
-Throughout this project I gained hands-on experience with:
+Throughout this project I learned how enterprise SIEM platforms ingest, index, search, and visualize security data.
 
-- Deploying a SIEM platform from scratch
-- Linux system administration
-- Installing and configuring Splunk Enterprise
-- Configuring Universal Forwarders
-- Windows Event Log collection
-- Active Directory authentication monitoring
-- Writing SPL queries
-- Creating Splunk dashboards
-- Troubleshooting log forwarding issues
-- Investigating Windows Security Event IDs
-- Understanding SOC monitoring workflows
+Key concepts included:
+
+- Installing Splunk Enterprise on Ubuntu
+- Configuring Linux services
+- Deploying the Splunk Universal Forwarder
+- Configuring Windows Event Log collection
+- Creating a custom Splunk index
+- Understanding Windows Security Event IDs
+- Writing SPL searches
+- Searching authentication events
+- Identifying failed logins
+- Detecting account lockouts
+- Monitoring service activity
+- Building dashboards
+- Creating scheduled alerts
+
+This project also reinforced how Windows Event IDs can be correlated to identify suspicious authentication behavior commonly investigated by SOC analysts.
 
 ---
 
@@ -226,93 +140,155 @@ Throughout this project I gained hands-on experience with:
 
 ### SIEM
 
-- Splunk Enterprise
-- Log Management
-- Security Monitoring
-- Event Correlation
-- Threat Hunting Fundamentals
+- Splunk Enterprise Deployment
+- Splunk Universal Forwarder
+- Security Information & Event Management
+- Windows Event Log Collection
 
-### Windows
+### Windows Administration
 
-- Active Directory
-- Windows Server 2022
-- Windows Event Logs
-- Authentication Analysis
-- Security Event Investigation
+- Active Directory Integration
+- Windows Event Viewer
+- Windows Security Logs
+- Authentication Monitoring
 
-### Linux
+### Linux Administration
 
 - Ubuntu Server
-- System Administration
+- Linux CLI
 - Service Management
-- CLI Administration
+- SSH
 
-### Security
+### Log Analysis
 
-- Security Information and Event Management (SIEM)
-- Authentication Monitoring
-- Account Lockout Investigation
-- Windows Security Events
-- Security Dashboards
+- SPL (Splunk Processing Language)
+- Event Searching
+- Data Correlation
+- Security Monitoring
 
-### Networking
+### Security Monitoring
 
-- TCP Ports
-- Log Forwarding
-- Client/Server Communication
-- Troubleshooting Connectivity
+- Failed Logins (4625)
+- Successful Logins (4624)
+- Account Lockouts (4740)
+- Service Events (7036)
+- User Creation Events (4720)
+
+### Detection Engineering
+
+- Dashboards
+- Scheduled Searches
+- Automated Alerts
+- Security Reporting
+
+---
+
+# Dashboard Panels
+
+*(Complete these after generating additional Windows events.)*
+
+## Authentication Overview
+
+- Failed Logins
+- Successful Logins
+- Failed vs Successful Logins
+- Login Activity Over Time
+
+---
+
+## Account Monitoring
+
+- Account Lockouts
+- New User Accounts Created
+- Password Reset Events
+- Group Membership Changes
+
+---
+
+## Security Monitoring
+
+- Top Failed Usernames
+- Top Successful Users
+- Most Active Workstations
+- Logon Types
+- Authentication Timeline
+
+---
+
+## System Activity
+
+- Windows Service Activity
+- System Events
+- Application Events
+- Event Volume Over Time
+
+---
+
+## Threat Hunting
+
+- After Hours Logins
+- Failed Logins by Computer
+- Failed Logins by Username
+- Top Event IDs
+- Recent Authentication Failures
+
+---
+
+## Alert Monitoring
+
+- Triggered Alerts
+- Brute Force Detection
+- Excessive Login Failures
+- Recent Alert Activity
+
+---
+
+### Dashboard Screenshot
+
+*(Insert your completed Splunk dashboard here.)*
+
+```
+images/dashboard-overview.png
+```
+
+---
+
+### Alert Screenshot
+
+*(Insert your scheduled brute force detection alert.)*
+
+```
+images/brute-force-alert.png
+```
 
 ---
 
 # Key Takeaways
 
-- Successfully deployed Splunk Enterprise on Ubuntu Linux.
-- Configured Windows Server log forwarding using the Splunk Universal Forwarder.
-- Built a centralized Windows log management solution.
-- Collected Security, System, and Application Event Logs into Splunk.
-- Investigated authentication activity using SPL searches.
-- Built a SOC-style Windows Security Dashboard for monitoring authentication events.
-- Developed practical experience with Windows Event IDs commonly investigated by SOC analysts.
-- Strengthened troubleshooting skills by resolving connectivity, forwarding, and log ingestion issues throughout deployment.
+- Successfully deployed Splunk Enterprise on an Ubuntu Server.
+- Configured Windows Server to forward Security, System, and Application logs using the Splunk Universal Forwarder.
+- Collected and indexed Windows Event Logs into a custom Splunk index.
+- Developed SPL searches to investigate authentication events and identify suspicious activity.
+- Built security dashboards to visualize login behavior and Windows event activity.
+- Configured scheduled alerts to automate brute force detection.
+- Gained practical experience with enterprise SIEM workflows commonly used by SOC analysts and incident responders.
 
 ---
 
-# Portfolio Summary
+## Portfolio Summary
 
-This project demonstrates my ability to deploy, configure, and operate a Security Information and Event Management (SIEM) platform within a Windows Active Directory environment. Rather than simply installing Splunk, I configured end-to-end log collection using the Splunk Universal Forwarder, centralized Windows Event Logs into a custom index, performed authentication analysis using SPL, and built a security monitoring dashboard that mirrors real-world SOC workflows.
+This project demonstrates foundational Security Operations Center (SOC) skills by implementing an end-to-end SIEM solution capable of collecting, searching, visualizing, and monitoring Windows security events.
 
-This lab strengthened my experience with Windows Server administration, Active Directory, Linux administration, security monitoring, and SIEM technologies while providing practical exposure to the investigative processes performed by Security Operations Center analysts.
+The lab showcases experience with centralized logging, Windows event analysis, SPL query development, dashboard creation, and automated alerting—core responsibilities found in modern cybersecurity and blue team environments.
 
----
+**Technologies Used**
 
-# Repository Structure
-
-```
-Splunk-Lab-MTW/
-│
-├── README.md
-├── images/
-│   ├── dashboard-overview.png
-│   ├── architecture.png
-│   ├── splunk-install.png
-│   ├── forwarding.png
-│   ├── inputsconf.png
-│   └── dashboard-panels.png
-│
-├── spl/
-│   ├── failed_logins.spl
-│   ├── successful_logins.spl
-│   ├── lockouts.spl
-│   └── dashboard_searches.spl
-│
-└── docs/
-    └── Lab Documentation.pdf
-```
-
----
-
-## Author
-
-**Rico**
-
-Cybersecurity | SOC Analyst | SIEM | Active Directory | Windows Server | Splunk | Linux
+- Splunk Enterprise
+- Splunk Universal Forwarder
+- Ubuntu Server
+- Windows Server 2022
+- Active Directory
+- Windows Event Logs
+- SPL (Splunk Processing Language)
+- SSH
+- Linux CLI
